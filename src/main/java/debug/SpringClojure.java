@@ -21,13 +21,13 @@ public class SpringClojure implements ApplicationRunner {
     private String ns;
 
     @Autowired
-    private void setApplicationContext(ApplicationContext $applicationContext){
+    private void setApplicationContext(ApplicationContext $applicationContext) {
         applicationContext = $applicationContext;
     }
 
     private static ApplicationContext applicationContext;
 
-    public static ApplicationContext getApplicationContext(){
+    public static ApplicationContext getApplicationContext() {
         return applicationContext;
     }
 
@@ -36,7 +36,13 @@ public class SpringClojure implements ApplicationRunner {
         System.out.println("nrepl server starting...");
         Clojure.var("clojure.core", "require").invoke(Symbol.intern("nrepl.server"));
         Clojure.var("nrepl.server", "start-server").invoke(Keyword.intern("port"), this.nreplServerPort);
-        Clojure.var("clojure.core", "load-string").invoke(String.format("(ns %s) (import debug.SpringClojure) (def spring-context (debug.SpringClojure/getApplicationContext)) (defn bean> [^String name] (.getBean spring-context name))", this.ns));
+        Clojure.var("clojure.core", "load-string").invoke(
+                String.format("(ns %s) " +
+                                "(import %s) " +
+                                "(def spring-context (SpringClojure/getApplicationContext)) " +
+                                "(defn bean> [$] (.getBean spring-context $))" +
+                                "(defmacro invoke> [$ method & args] `(. (bean> ~$) ~method ~@args))"
+                        , this.ns, SpringClojure.class.getName()));
         System.out.println(String.format("nrepl server listen on port %s", this.nreplServerPort));
     }
 
