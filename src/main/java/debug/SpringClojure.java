@@ -54,8 +54,8 @@ public class SpringClojure implements ApplicationRunner {
                 String.format("(ns %s) " +
                                 "(import %s) " +
                                 "(def spring-context (SpringClojure/getApplicationContext)) " +
-                                "(defn sprint-bean> [$] (.getBean spring-context $))" +
-                                "(defmacro invoke> [$ method & args] `(. (sprint-bean> ~$) ~method ~@args))"
+                                "(defn spring-bean> [$] (.getBean spring-context $))" +
+                                "(defmacro invoke> [$ method & args] `(. (spring-bean> ~$) ~method ~@args))"
                         , this.ns, SpringClojure.class.getName()));
         loadPluginDirectory();
         System.out.println(String.format("nrepl server listen on port %s", this.nreplServerPort));
