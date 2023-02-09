@@ -57,7 +57,7 @@ public class SpringClojure implements ApplicationRunner {
                                 "(defn spring-bean> [$] (.getBean spring-context $))" +
                                 "(defmacro invoke> [$ method & args] `(. (spring-bean> ~$) ~method ~@args))"
                         , this.ns, SpringClojure.class.getName()));
-        loadPluginDirectory();
+        loadPlugins();
         System.out.println(String.format("nrepl server listen on port %s", this.nreplServerPort));
     }
 
@@ -80,7 +80,7 @@ public class SpringClojure implements ApplicationRunner {
         return null == argsSeq ? iFn.invoke() : iFn.applyTo(argsSeq);
     }
 
-    private void loadPluginDirectory() throws IOException {
+    private void loadPlugins() throws IOException {
         if (null == this.pluginDirectory || this.pluginDirectory.trim().isEmpty()) {
             return;
         }
