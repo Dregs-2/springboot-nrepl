@@ -31,7 +31,7 @@ public class SpringClojure implements ApplicationRunner {
     private int nreplServerPort;
     @Value("${NREPL_NS:user}")
     private String ns;
-    @Value("${PLUGIN_DIRECTORY:null}")
+    @Value("${PLUGIN_DIRECTORY:}")
     private String pluginDirectory;
 
     @Autowired
