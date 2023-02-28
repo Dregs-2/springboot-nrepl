@@ -4,7 +4,7 @@
 
 ## 如何工作
 ### 基本流程
-1. 打包此项目将jar包和一些必须的依赖项添加到你的项目`mvn clean install`
+1. 打包此项目将jar包和一些必须的依赖项添加到你的项目;打包命令: `mvn clean install`
 2. 在启动参数中添加一些环境变量来配置
 3. 修改启动类注解属性添加包扫描`@SpringBootApplication(scanBasePackages = "debug")`也可以修改该项目代码来定制
 4. 启动你的项目
@@ -75,7 +75,7 @@
 </tr>
 <tr>
 <td>PLUGIN_DIRECTORY</td>
-<td>null</td>
+<td></td>
 <td>插件目录, 默认为空, 非空时根据目录地址去加载目录下后缀为*.clj的文件作为插件</td>
 </tr></tbody>
 </table>
