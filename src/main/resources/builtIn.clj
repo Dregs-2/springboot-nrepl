@@ -20,7 +20,7 @@
   (let [import-classes-sym (mapv symbol import-classes-str)
         import-classes (mapv resolve import-classes-sym)]
     (when-not (contains? (set import-classes) nil)
-      `(let [*import-classes-sym* (vector ~@import-classes-sym)] ~@body)
+      `(let [~'*import-classes-sym* (vector ~@import-classes-sym)] ~@body)
       )
     )
   )
