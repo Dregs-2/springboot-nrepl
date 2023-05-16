@@ -14,8 +14,11 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.ResourceUtils;
+import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,7 +34,7 @@ public class SpringClojure implements ApplicationRunner {
     private int nreplServerPort;
     @Value("${NREPL_NS:user}")
     private String ns;
-    @Value("${PLUGIN_DIRECTORY:}")
+    @Value("${NREPL_PLUGIN_DIRECTORY:}")
     private String pluginDirectory;
 
     @Autowired
@@ -50,22 +53,19 @@ public class SpringClojure implements ApplicationRunner {
         System.out.println("nrepl server starting...");
         clojureFnInvoke("clojure.core", "require", Symbol.intern("nrepl.server"));
         clojureFnInvoke("nrepl.server", "start-server", Keyword.intern("port"), this.nreplServerPort);
+        System.out.println("nrepl server listen on port " + this.nreplServerPort);
+        String builtIn = StreamUtils.copyToString(ResourceUtils.getURL("classpath:builtIn.clj").openStream(), StandardCharsets.UTF_8);
         clojureFnInvoke("clojure.core", "load-string",
-                String.format("(ns %s) " +
-                                "(import %s) " +
-                                "(def spring-context (SpringClojure/getApplicationContext)) " +
-                                "(defn spring-bean> [$] (.getBean spring-context $))" +
-                                "(defmacro invoke> [$ method & args] `(. (spring-bean> ~$) ~method ~@args))"
-                        , this.ns, SpringClojure.class.getName()));
+                String.format("(ns %s)\n(import %s)\n%s", this.ns, SpringClojure.class.getName(), builtIn));
         loadPlugins();
-        System.out.println(String.format("nrepl server listen on port %s", this.nreplServerPort));
+
     }
 
-    private IFn clojureFn(String ns, String name) {
+    private static IFn clojureFn(String ns, String name) {
         return Clojure.var(ns, name);
     }
 
-    private Object clojureFnInvoke(String ns, String name, Object... args) {
+    private static Object clojureFnInvoke(String ns, String name, Object... args) {
 
         IFn iFn = clojureFn(ns, name);
 
@@ -99,19 +99,25 @@ public class SpringClojure implements ApplicationRunner {
                 .filter(Files::isRegularFile)
                 .filter(path -> path.toString().endsWith(".clj"))
                 .sorted()
-                .forEach(path -> {
-                    try {
-                        String code = Files
-                                .lines(path)
-                                .collect(Collectors.joining("\n"));
-                        clojureFnInvoke("clojure.core", "load-string", String.format("(ns %s)\n%s", this.ns, code));
-                        System.out.println(String.format("loaded successfully [%s]", path));
-                    } catch (Exception e) {
-                        System.err.println(String.format("loaded failure [%s]", path));
-                        e.printStackTrace();
-                    }
-                });
+                .forEach(path -> SpringClojure.load(this.ns, path));
         System.out.println("plugins loaded finish");
     }
-    
+
+    public static void load(String ns, String path) {
+        load(ns, Paths.get(path));
+    }
+
+    public static void load(String ns, Path path) {
+        try {
+            String code = Files
+                    .lines(path)
+                    .collect(Collectors.joining("\n"));
+            clojureFnInvoke("clojure.core", "load-string", String.format("(ns %s)\n%s", ns, code));
+            System.out.println(String.format("loaded successfully [%s]", path));
+        } catch (Exception e) {
+            System.err.println(String.format("loaded failure [%s]", path));
+            e.printStackTrace();
+        }
+    }
+
 }
